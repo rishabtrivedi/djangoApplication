@@ -3,6 +3,11 @@ from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 # Create your views here.
 from .forms import LoginForm,SignupForm
+from . models import UserDetails
+from django.http import HttpResponse, JsonResponse
+from .Serializers import UserSerializer
+import json
+from django.views.decorators.csrf import csrf_exempt
 
 
 def index(request):
@@ -39,3 +44,67 @@ def login(request):
 def logoutView(request):
     logout(request)
     return redirect('Loginify:login')
+
+def getAllUsers(request):
+    users = UserDetails.objects.all()
+    print(users)
+    return render(request, 'Loginify/allUsers.html', {'users': users})
+
+@csrf_exempt
+def getUserDetails(request):
+    if request.method == 'GET':
+        users = UserDetails.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+@csrf_exempt
+def getUserByEmail(request):
+    email = request.GET.get('email', None)
+    if email:
+        try:
+            user = UserDetails.objects.get(email=email)
+            serializer = UserSerializer(user)
+            return JsonResponse(serializer.data)
+        except UserDetails.DoesNotExist:
+            return JsonResponse({'error': 'User not found'})
+    else:
+        return JsonResponse({'error': 'No email provided'})
+
+@csrf_exempt
+def updateUserDetails(request):
+    if request.method == 'PUT':
+        email = request.GET.get('email', None)
+        if email:
+            try:
+                user_data = json.loads(request.body)
+                user = UserDetails.objects.get(email=email)
+                
+                serializer = UserSerializer(user, data=user_data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return JsonResponse(serializer.data, status=200)
+                return JsonResponse(serializer.errors, status=400)
+            except UserDetails.DoesNotExist:
+                return JsonResponse({'error': 'User not found'})
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid JSON'})
+        else:
+            return JsonResponse({'error': 'Email is required'})
+    else:
+        return JsonResponse({'error': 'Invalid request method'})
+
+@csrf_exempt
+def deleteUserByEmail(request):
+    if request.method == 'DELETE':
+        email = request.GET.get('email', None)
+        if email:
+            try:
+                user = UserDetails.objects.get(email=email)
+                user.delete()
+                return JsonResponse({'message': 'User deleted successfully'})
+            except UserDetails.DoesNotExist:
+                return JsonResponse({'error': 'User not found'})
+        else:
+            return JsonResponse({'error': 'Email is required'})
+    else:
+        return JsonResponse({'error': 'Invalid request method'})

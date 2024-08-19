@@ -1,33 +1,18 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
-    <link rel="stylesheet" href="{% static 'Loginify/base.css' %}">
-</head>
-<body>
+{% extends 'Loginify/base.html' %}
 
-<div class="welcome-container">
-    {% if request.user.is_authenticated %}
-    <h1>Welcome, {{ request.user.username }}</h1>
-    {% else %}
-    <h1>Welcome</h1>
-    <p>Please choose an option:</p>
-    {% endif %}
-    
-    <div class="button-group">
-        {% if request.user.is_authenticated %}
-        <a href="{% url 'Loginify:logout' %}">Logout</a>
-        {% else %}
-        <a href="{% url 'Loginify:login' %}" class="btn">Login</a>
-        <a href="{% url 'Loginify:signup' %}" class="btn">Sign Up</a>
-        {% endif %}
-        
-       
-    </div>
-</div>
+{% block content %}
 
-</body>
-</html>
+{% endblock %}
+
+
+
+
+<!-- {% if request.user.is_authenticated %}
+<h2>Search User by Email</h2>
+<form action="{% url 'Loginify:getUserByEmail' %}" method="get">
+    <input type="email" name="email" placeholder="Enter user email" required>
+    <button type="submit">Search</button>
+</form>
+{% else %}
+<p>Please log in to search users by email.</p>
+{% endif %} -->
